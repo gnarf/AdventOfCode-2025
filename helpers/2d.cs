@@ -92,6 +92,17 @@ public class Point2D : IEquatable<Point2D>
         return String.Format("Point2D({0},{1})", x, y);
     }
 
+    public IEnumerable<Point2D> NearbyCells()
+    {
+        yield return this + Up;
+        yield return this + Up + Right;
+        yield return this + Right;
+        yield return this + Right + Down;
+        yield return this + Down;
+        yield return this + Down + Left;
+        yield return this + Left;
+        yield return this + Left + Up;
+    }
 
     public static readonly Point2D Zero = new Point2D(0, 0);
     public static readonly Point2D Up = new Point2D(0, -1);
