@@ -53,7 +53,7 @@ class Day5 : Puzzle
 
         public bool IncludesAny(Range r2)
         {
-            // Console.WriteLine($" test {this} {r2} ");
+            Console.WriteLine($" test {this} {r2} ");
             if (max < r2.min || min > r2.max) return false;
             return true;
         }
@@ -72,7 +72,6 @@ class Day5 : Puzzle
         }
     }
 
-    // not used anymore but kept for show
     public List<Range> ReduceRanges(List<Range> Input)
     {
         List<Range> ProcessedRanges = new();
@@ -99,24 +98,17 @@ class Day5 : Puzzle
 
     public override void Part2()
     {
-        Ranges.Sort(( a, b) => a.min.CompareTo(b.min) );        
-        for (int x=0; x<Ranges.Count-1;)
+        var collection = ReduceRanges(Ranges);
+        for(int lastCount = 0;lastCount != collection.Count;)
         {
-            if (Ranges[x].max >= Ranges[x+1].min)
-            {
-                // Console.WriteLine($"{Ranges[x]} {Ranges[x+1]}");
-                Ranges[x].max = Math.Max(Ranges[x+1].max, Ranges[x].max);
-                // Console.WriteLine($"{Ranges[x]}");
-                Ranges.RemoveAt(x+1);
-                // repeat this iteration
-            }
-            else
-            {
-                 x++;
-            }
+            lastCount = collection.Count;
+            // Console.WriteLine($"Reduce again: {lastCount}");
+            collection = ReduceRanges(collection);
+            Console.WriteLine($"Collection now: {collection.Count}");
         }
 
-        Console.WriteLine(Ranges.Aggregate(0L, (memo, r) => memo + r.max - r.min + 1));
+        Console.WriteLine(collection.Aggregate( 0L, (long Sum, Range X) => Sum + X.Size));
+        
         
     }
 }
