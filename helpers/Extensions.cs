@@ -16,4 +16,20 @@ public static class ListExtensions
         return list;
     }
 
+    public static void AddRange<T>(this ICollection<T> List, IEnumerable<T> Add)
+    {
+        foreach (var item in Add)
+        {
+            List.Add(item);
+        }
+    }
+
+    public static void AddRange<T,K>(this Dictionary<T, K> Dict, IEnumerable<KeyValuePair<T, K>> Add) where T : notnull
+    {
+        foreach (var entry in Add)
+        {
+            Dict[entry.Key] = entry.Value;
+        }
+    }
+
 }
