@@ -105,6 +105,6 @@ class Day7 : Puzzle
                 }
             }
         }
-        Console.WriteLine(Beams.Where(k => k.Key.y == lastRow).Select(kv => kv.Value).Sum());
+        Console.WriteLine(Beams.Where(kv => kv.Key.y == lastRow).Select(kv => kv.Value).Sum());
     }
 }
