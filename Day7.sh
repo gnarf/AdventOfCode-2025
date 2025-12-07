@@ -1,8 +1,4 @@
 mapfile G;W=${#G};H=${#G[@]}
-for((Q=0;Q<H*W;Q++));do
-((o=Q%W?o:0))
-g=${G[Q/W]:Q%W:1}
-[[ $g == 'S' ]]&& A[$Q]=1
-[[ $g == '^' ]]&&((A[Q-1+W]+=A[Q],A[Q+1+W]+=A[Q]))||((A[Q+W]+=t,o+=A[Q]))
-done
-echo $o
+for((Q=0;Q<H*W;Q++,x=Q%W));do ((o=x?o:0));g=${G[Q/W]:x:1}
+[[ $g == 'S' ]]&& A[$x]=1;[[ $g == '^' ]]&&((A[x-1]+=A[x],A[x+1]+=A[x],A[x]=0))||((o+=A[x]))
+done;echo $o
