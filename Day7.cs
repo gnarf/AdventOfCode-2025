@@ -88,9 +88,10 @@ class Day7 : Puzzle
         Dictionary<Point2D, BoardState> Board = new(InitialBoard);
         Dictionary<Point2D, long> Beams = new() { {Start, 1} };
 
-        for (long y=Start.y; y<=lastRow; y++)
+        for (long y=Start.y; y<lastRow; y++)
         {
-            var iter = Beams.Keys.Where(k => k.y == y).ToList();
+            // Console.WriteLine($"Row {y} - {Beams.Values.Sum()} timelines - {Beams.Values.Count()} locations");
+            var iter = Beams.Keys.ToList();
             foreach (var beam in iter)
             {
                 var n = beam + Point2D.Down;
@@ -103,8 +104,10 @@ class Day7 : Puzzle
                 {
                     AddBeam(Beams, n, Beams[beam]);
                 }
+                // just to make summing easier for the logs, remove the current line as we work it.
+                Beams.Remove(beam);
             }
         }
-        Console.WriteLine(Beams.Where(kv => kv.Key.y == lastRow).Select(kv => kv.Value).Sum());
+        Console.WriteLine(Beams.Values.Sum());
     }
 }
