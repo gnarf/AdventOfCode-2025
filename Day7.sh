@@ -1,32 +1,8 @@
-#!/bin/bash
-
-mapfile grid
-
-W=${#grid}
-H=${#grid[@]}
-declare -A beams
-
-for((y=0;y<H;y++)); do
-    for((x=0;x<W;x++)); do
-        g=${grid[$y]:$x:1}
-        ((X=$x+$y*$W))
-        [[ $g == 'S' ]] && ((beams[$X]=1))
-        b=${beams[$X]}
-        if [[ $b > 0 ]]; then
-            if [[ $g == '^' ]]; then
-                ((i=X-1+W))
-                ((beams[$i]+=b))
-                ((i=X+1+W))
-                ((beams[$i]+=b))
-            else
-                ((i=X+W))
-                ((beams[$i]+=b))
-            fi
-        fi
-    done
+mapfile G;W=${#G};H=${#G[@]}
+for((Q=0;Q<H*W;Q++));do
+((o=Q%W?o:0))
+g=${G[Q/W]:Q%W:1}
+[[ $g == 'S' ]]&& A[$Q]=1
+[[ $g == '^' ]]&&((A[Q-1+W]+=A[Q],A[Q+1+W]+=A[Q]))||((A[Q+W]+=t,o+=A[Q]))
 done
-total=0
-for((x=(H-1)*W;x<W*H;x++)); do
-    (( total+=beams[$x] ))
-done
-echo $total
+echo $o
