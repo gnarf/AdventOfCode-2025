@@ -97,7 +97,7 @@ class Day8 : Puzzle
 
     public override void Part2()
     {
-        Connection last = null;
+        Connection? last = null;
         List<Circuit> Circuits = new(JunctionBoxes.Select(J => new Circuit(J)));
         foreach (var test in Combinations)
         {
@@ -124,7 +124,7 @@ class Day8 : Puzzle
         }
         // Console.WriteLine($"{Circuits.Count} circuits; sizes {string.Join(", ", Circuits.Select(m => m.Members.Count))}");
 
-        Console.WriteLine(last.a.x * last.b.x);
+        if (last != null) Console.WriteLine(last.a.x * last.b.x);
         
     }
 }
