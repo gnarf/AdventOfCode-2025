@@ -20,18 +20,27 @@ if (RunnerType!=null && Activator.CreateInstance(RunnerType) is Puzzle runner)
         runner.extra = args[1];
     }
     inputFile += ".txt";
-    Console.WriteLine($"Input {inputFile}");
-    runner.Parse(inputFile);
-    Console.WriteLine("###### PART 1 ######");
+    Console.WriteLine($"Parsing Input {inputFile}");
     var clock = System.Diagnostics.Stopwatch.StartNew();
+    runner.Parse(inputFile);
+    clock.Stop();
+    Console.WriteLine($"=={clock.Elapsed}==");
+
+    Console.WriteLine();
+
+    Console.WriteLine("###### PART 1 ######");
+    clock = System.Diagnostics.Stopwatch.StartNew();
     runner.Part1();
     clock.Stop();
-    Console.WriteLine(clock.Elapsed);
+    Console.WriteLine($"=={clock.Elapsed}==");
+
+    Console.WriteLine();
+
     Console.WriteLine("###### PART 2 ######");
     clock = System.Diagnostics.Stopwatch.StartNew();
     runner.Part2();
     clock.Stop();
-    Console.WriteLine(clock.Elapsed);
+    Console.WriteLine($"=={clock.Elapsed}==");
 }
 else
 {

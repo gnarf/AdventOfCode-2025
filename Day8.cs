@@ -36,9 +36,10 @@ class Day8 : Puzzle
     {
         public Point3D a;
         public Point3D b;
-        public Connection(Point3D a, Point3D b) { this.a = a; this.b = b; }
-        public double Distance() => (a-b).Magnitude();
-        public override string ToString() => $"{a} {b} {(a-b).Magnitude():0.###}";
+        public Connection(Point3D a, Point3D b) { this.a = a; this.b = b; _Distance = (a-b).Magnitude(); }
+        private double _Distance=0;
+        public double Distance() => _Distance;
+        public override string ToString() => $"{a} {b} {Distance():0.###}";
     }
 
     public class Circuit
