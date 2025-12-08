@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 
 public abstract class Puzzle {
+    public string? extra = null;
     public string[] lines = new string[0];
 
     private string[]? _words;

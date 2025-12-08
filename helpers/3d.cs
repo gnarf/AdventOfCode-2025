@@ -2,11 +2,11 @@ namespace AoC2025;
 
 public class Point3D : IEquatable<Point3D>
 {
-    public int x { get; init; }
-    public int y { get; init; }
-    public int z { get; init; }
+    public long x { get; init; }
+    public long y { get; init; }
+    public long z { get; init; }
 
-    public Point3D(int x, int y, int z)
+    public Point3D(long x, long y, long z)
     {
         this.x = x;
         this.y = y;
@@ -66,7 +66,12 @@ public class Point3D : IEquatable<Point3D>
         return new Point3D(Math.Max(a.x, b.x), Math.Max(a.y, b.y), Math.Max(a.z, b.z));
     }
 
-    public int Manhattan(Point3D? other = null)
+    public double Magnitude()
+    {
+        return Math.Sqrt( Math.Pow((double)x, 2) + Math.Pow((double)y, 2) + Math.Pow((double)z, 2) );
+    }
+
+    public long Manhattan(Point3D? other = null)
     {
         other ??= Zero;
         return Math.Abs(x - other.x) + Math.Abs(y - other.y) + Math.Abs(z - other.z);

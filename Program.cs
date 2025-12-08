@@ -17,6 +17,7 @@ if (RunnerType!=null && Activator.CreateInstance(RunnerType) is Puzzle runner)
     if (args.Length > 1)
     {
         inputFile += "."+args[1];
+        runner.extra = args[1];
     }
     inputFile += ".txt";
     Console.WriteLine($"Input {inputFile}");
