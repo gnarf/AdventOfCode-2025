@@ -10,6 +10,7 @@ class Day8 : Puzzle
 {
 
     public List<Point3D> JunctionBoxes = new();
+    public List<Connection> Combinations = new();
 
     public override void Parse(string filename)
     {
@@ -19,6 +20,16 @@ class Day8 : Puzzle
             var parts = l.Split(',').Select(s => long.Parse(s)).ToArray();
             JunctionBoxes.Add(new(parts[0], parts[1], parts[2]));
         }
+
+        for (int x=0; x<JunctionBoxes.Count-1; x++)
+        {
+            for (int y=x+1; y<JunctionBoxes.Count; y++)
+            {
+                Combinations.Add(new (JunctionBoxes[x], JunctionBoxes[y]));                
+            }
+        }
+
+        Combinations.Sort( (a, b) => a.Distance().CompareTo(b.Distance()) );
     }
 
     public class Connection
@@ -30,72 +41,55 @@ class Day8 : Puzzle
         public override string ToString() => $"{a} {b} {(a-b).Magnitude():0.###}";
     }
 
+    public class Circuit
+    {
+        public HashSet<Point3D> Members = new();
+        public List<Connection> Connections = new();
+        public Circuit(Point3D JunctionBox)
+        {
+            Members.Add(JunctionBox);
+        }
+
+        public bool Contains(Point3D Box) => Members.Contains(Box);
+        public void AddCircuit(Circuit other, Connection cable)
+        {
+            Members.AddRange(other.Members);
+            Connections.Add(cable);
+            Connections.AddRange(other.Connections);
+        }
+    }
+
     public override void Part1()
     {
         int ConnectionsToMake = extra == "example" ? 10 : 1000;
 
-        List<Connection> Combinations = new();
-        List<List<Connection>> Circuits = new(); 
-        List<HashSet<Point3D>> CircuitMembers = new();
-        for (int x=0; x<JunctionBoxes.Count-1; x++)
-        {
-            for (int y=x+1; y<JunctionBoxes.Count; y++)
-            {
-                Combinations.Add(new (JunctionBoxes[x], JunctionBoxes[y]));                
-            }
-        }
-
-        Combinations.Sort( (a, b) => a.Distance().CompareTo(b.Distance()) );
+        List<Circuit> Circuits = new(JunctionBoxes.Select(box => new Circuit(box)));
 
         int nextTest = 0;
         while (ConnectionsToMake > 0)
         {
-            // Console.WriteLine($"{ConnectionsToMake} connections left; {Circuits.Count} circuits; sizes {string.Join(", ", CircuitMembers.Select(m => m.Count))}");
+            // Console.WriteLine($"{Circuits.Count} circuits; sizes {string.Join(", ", Circuits.Select(m => m.Members.Count))}");
             var test = Combinations[nextTest++];
 
-            var circ1 = CircuitMembers.FindIndex(circ => circ.Contains(test.a));
-            var circ2 = CircuitMembers.FindIndex(circ => circ.Contains(test.b));
+            var circ1 = Circuits.FindIndex(circ => circ.Contains(test.a));
+            var circ2 = Circuits.FindIndex(circ => circ.Contains(test.b));
 
-            if (circ2 == -1)
-            {
-                if (circ1 == -1)
-                {
-                    // Console.WriteLine($"New Circuit: Connecting {test.a}#{circ1} and {test.b}#{circ2}");
-                    Circuits.Add(new() { test });
-                    CircuitMembers.Add(new () { test.a, test.b });
-                }
-                else
-                {
-                    // Console.WriteLine($"Existing Circuit: Connecting {test.a}#{circ1} and {test.b}#{circ2}");
-                    Circuits[circ1].Add(test);
-                    CircuitMembers[circ1].Add(test.b);
-                }
-            }
-            else if (circ1 == -1)
-            {
-                // Console.WriteLine($"Existing Circuit: Connecting {test.a}#{circ1} and {test.b}#{circ2}");
-                Circuits[circ2].Add(test);
-                CircuitMembers[circ2].Add(test.a);
-            }
-            else if (circ1 == circ2)
+            if (circ1 == circ2)
             {
                 // Console.WriteLine($"Already Connected: {test.a}#{circ1} and {test.b}#{circ2}");
             }
             else
             {
                 // Console.WriteLine($"Connecting Circuits: {test.a}#{circ1} and {test.b}#{circ2}");
-                Circuits[circ1].Add(test);
-                Circuits[circ1].AddRange(Circuits[circ2]);
-                CircuitMembers[circ1].AddRange(CircuitMembers[circ2]);
+                Circuits[circ1].AddCircuit(Circuits[circ2], test);
                 Circuits.RemoveAt(circ2);
-                CircuitMembers.RemoveAt(circ2);
             }
             ConnectionsToMake--;
         }
-        // Console.WriteLine($"{ConnectionsToMake} connections left; {Circuits.Count} circuits; sizes {string.Join(", ", CircuitMembers.Select(m => m.Count))}");
+        // Console.WriteLine($"{Circuits.Count} circuits; sizes {string.Join(", ", Circuits.Select(m => m.Members.Count))}");
 
         int revcomp(int a, int b) => b.CompareTo(a);
-        var memCounts = CircuitMembers.Select(m=>m.Count).ToList();
+        var memCounts = Circuits.Select(m=>m.Members.Count).ToList();
         memCounts.Sort(revcomp);
         var result = memCounts.Take(3).Aggregate(1, (a, b) => a*b);
         Console.WriteLine(result);
@@ -103,59 +97,24 @@ class Day8 : Puzzle
 
     public override void Part2()
     {
-        List<Connection> Combinations = new();
-        List<List<Connection>> Circuits = new(JunctionBoxes.Select(J => new List<Connection>())); 
-        List<HashSet<Point3D>> CircuitMembers = new(JunctionBoxes.Select(J => new HashSet<Point3D>() { J }));
-        for (int x=0; x<JunctionBoxes.Count-1; x++)
-        {
-            for (int y=x+1; y<JunctionBoxes.Count; y++)
-            {
-                Combinations.Add(new (JunctionBoxes[x], JunctionBoxes[y]));                
-            }
-        }
-
-        Combinations.Sort( (a, b) => a.Distance().CompareTo(b.Distance()) );
         Connection last = null;
+        List<Circuit> Circuits = new(JunctionBoxes.Select(J => new Circuit(J)));
         foreach (var test in Combinations)
         {
-            Console.WriteLine($"{Circuits.Count} circuits; sizes {string.Join(", ", CircuitMembers.Select(m => m.Count))}");
+            // Console.WriteLine($"{Circuits.Count} circuits; sizes {string.Join(", ", Circuits.Select(m => m.Members.Count))}");
 
-            var circ1 = CircuitMembers.FindIndex(circ => circ.Contains(test.a));
-            var circ2 = CircuitMembers.FindIndex(circ => circ.Contains(test.b));
+            var circ1 = Circuits.FindIndex(circ => circ.Contains(test.a));
+            var circ2 = Circuits.FindIndex(circ => circ.Contains(test.b));
 
-            if (circ2 == -1)
+            if (circ1 == circ2)
             {
-                if (circ1 == -1)
-                {
-                    Console.WriteLine($"New Circuit: Connecting {test.a}#{circ1} and {test.b}#{circ2}");
-                    Circuits.Add(new() { test });
-                    CircuitMembers.Add(new () { test.a, test.b });
-                }
-                else
-                {
-                    Console.WriteLine($"Existing Circuit: Connecting {test.a}#{circ1} and {test.b}#{circ2}");
-                    Circuits[circ1].Add(test);
-                    CircuitMembers[circ1].Add(test.b);
-                }
-            }
-            else if (circ1 == -1)
-            {
-                Console.WriteLine($"Existing Circuit: Connecting {test.a}#{circ1} and {test.b}#{circ2}");
-                Circuits[circ2].Add(test);
-                CircuitMembers[circ2].Add(test.a);
-            }
-            else if (circ1 == circ2)
-            {
-                Console.WriteLine($"Already Connected: {test.a}#{circ1} and {test.b}#{circ2}");
+                // Console.WriteLine($"Already Connected: {test.a}#{circ1} and {test.b}#{circ2}");
             }
             else
             {
-                Console.WriteLine($"Connecting Circuits: {test.a}#{circ1} and {test.b}#{circ2}");
-                Circuits[circ1].Add(test);
-                Circuits[circ1].AddRange(Circuits[circ2]);
-                CircuitMembers[circ1].AddRange(CircuitMembers[circ2]);
+                // Console.WriteLine($"Connecting Circuits: {test.a}#{circ1} and {test.b}#{circ2}");
+                Circuits[circ1].AddCircuit(Circuits[circ2], test);
                 Circuits.RemoveAt(circ2);
-                CircuitMembers.RemoveAt(circ2);
             }
             if (Circuits.Count == 1)
             {
@@ -163,7 +122,7 @@ class Day8 : Puzzle
                 break;
             }
         }
-        Console.WriteLine($"{Circuits.Count} circuits; sizes {string.Join(", ", CircuitMembers.Select(m => m.Count))}");
+        // Console.WriteLine($"{Circuits.Count} circuits; sizes {string.Join(", ", Circuits.Select(m => m.Members.Count))}");
 
         Console.WriteLine(last.a.x * last.b.x);
         
