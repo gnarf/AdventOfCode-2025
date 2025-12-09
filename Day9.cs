@@ -23,19 +23,16 @@ class Day9 : Puzzle
 
     public class Box2D
     {
-        public Point2D a;
-        public Point2D b;
+        public Point2D UL;
+        public Point2D LR;
+        public long Area;
 
         public Box2D(Point2D a, Point2D b)
         {
-            this.a = Point2D.Min(a, b);
-            this.b = Point2D.Max(a, b);
-        }
-
-        public long Area()
-        {
+            this.UL = Point2D.Min(a, b);
+            this.LR = Point2D.Max(a, b);
             var diff = (b-a);
-            return (Math.Abs(diff.x) + 1) * (Math.Abs(diff.y) + 1);
+            Area = (Math.Abs(diff.x) + 1) * (Math.Abs(diff.y) + 1);
         }
     }
 
@@ -50,9 +47,9 @@ class Day9 : Puzzle
                 Boxes.Add(new (RedTiles[x], RedTiles[y]));
             }
         }
-        Boxes.Sort( (a, b) => b.Area().CompareTo(a.Area()) );
+        Boxes.Sort( (a, b) => b.Area.CompareTo(a.Area) );
 
-        Console.WriteLine(Boxes[0].Area());
+        Console.WriteLine(Boxes[0].Area);
     }
 
     public override void Part2()
@@ -67,7 +64,7 @@ class Day9 : Puzzle
             }
         }
         // TimeCheck("Sorting Boxes");
-        Boxes.Sort( (a, b) => b.Area().CompareTo(a.Area()) );
+        Boxes.Sort( (a, b) => b.Area.CompareTo(a.Area) );
 
         // int boxes = 0;
         // TimeCheck("Starting Box Check");
@@ -80,7 +77,7 @@ class Day9 : Puzzle
             // Console.WriteLine($"Test: {box.a} {box.b} {box.Area()}");
             if (TestBox(box))
             {
-                Console.WriteLine(box.Area());
+                Console.WriteLine(box.Area);
                 break;
             }
         }
@@ -88,40 +85,41 @@ class Day9 : Puzzle
 
     bool TestBox(Box2D box)
     {
+        // check each segment of the polygon to see if it crosses into our box
         for (int x=0; x<RedTiles.Count; x++)
         {
-            var s = RedTiles[x];
-            var e = RedTiles[(x+1) % RedTiles.Count];
-            var d = (e-s).Sign();
+            var start = RedTiles[x];
+            var end = RedTiles[(x+1) % RedTiles.Count];
+            var diff = end-start;
             // this segment of the poly moves left<->right
-            if (d.x != 0 )
+            if (diff.x != 0 )
             {
                 // fully outside box (or on our "edge")
-                if (s.y <= box.a.y || s.y >= box.b.y) continue;
-                if (s.x >= box.b.x && e.x >= box.b.x) continue;
-                if (s.x <= box.a.x && e.x <= box.a.x) continue;
+                if (start.y <= box.UL.y || start.y >= box.LR.y) continue;
+                if (start.x >= box.LR.x && end.x >= box.LR.x) continue;
+                if (start.x <= box.UL.x && end.x <= box.UL.x) continue;
                 // starts or ends in the heart of the box 
-                if (s.x > box.a.x && s.x < box.b.x) return false;
-                if (e.x > box.a.x && e.x < box.b.x) return false;
+                if (start.x > box.UL.x && start.x < box.LR.x) return false;
+                if (end.x > box.UL.x && end.x < box.LR.x) return false;
                 // spans across our box
-                if (s.x <= box.a.x && e.x >= box.b.x) return false;
-                if (e.x <= box.a.x && s.x >= box.b.x) return false;
+                if (start.x <= box.UL.x && end.x >= box.LR.x) return false;
+                if (end.x <= box.UL.x && start.x >= box.LR.x) return false;
             }
             // this segment of the poly moves up/down
             else
             {
                 // fully outside box (or on our "edge")
-                if (s.x <= box.a.x || s.x >= box.b.x) continue;
-                if (s.y >= box.b.y && e.y >= box.b.y) continue;
-                if (s.y <= box.a.y && e.y <= box.a.y) continue;
+                if (start.x <= box.UL.x || start.x >= box.LR.x) continue;
+                if (start.y >= box.LR.y && end.y >= box.LR.y) continue;
+                if (start.y <= box.UL.y && end.y <= box.UL.y) continue;
                 // starts or ends in the heart of the box 
-                if (s.y > box.a.y && s.y < box.b.y) return false;
-                if (e.y > box.a.y && e.y < box.b.y) return false;
+                if (start.y > box.UL.y && start.y < box.LR.y) return false;
+                if (end.y > box.UL.y && end.y < box.LR.y) return false;
                 // spans across our box
-                if (s.y <= box.a.y && e.y >= box.b.y) return false;
-                if (e.y <= box.a.y && s.y >= box.b.y) return false;
+                if (start.y <= box.UL.y && end.y >= box.LR.y) return false;
+                if (end.y <= box.UL.y && start.y >= box.LR.y) return false;
             }
-            throw new Exception($"Didn't quick exit for line from {s} to {e} and box {box.a} {box.b}");
+            throw new Exception($"Didn't quick exit for line from {start} to {end} and box {box.UL} {box.LR}");
         }
         return true;            
     }
