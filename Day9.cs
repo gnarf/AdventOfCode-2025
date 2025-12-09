@@ -93,20 +93,26 @@ class Day9 : Puzzle
                 var s = RedTiles[x];
                 var e = RedTiles[(x+1) % RedTiles.Count];
                 var d = (e-s).Sign();
+                // this segment of the poly moves left<->right
                 if (d.x == 1 || d.x == -1)
                 {
+                    // if the y coordinate is the same as one of our edges, or outside the box, skip
                     if (s.y <= box.a.y || s.y >= box.b.y) continue;
                     while (s != e + d)
                     {
+                        // if the point goes fully inside our box
                         if (s.x > box.a.x && s.x < box.b.x) return false;
                         s+=d;
                     }
                 }
+                // this segment of the poly moves up/down
                 else
                 {
+                    // if the x coordinate is the same as one of our edges, or outside the box, skip
                     if (s.x <= box.a.x || s.x >= box.b.x) continue;
                     while (s != e + d)
                     {
+                        // if the point goes fully inside our box
                         if (s.y > box.a.y && s.y < box.b.y) return false;
                         s+=d;
                     }
