@@ -94,28 +94,30 @@ class Day9 : Puzzle
             var e = RedTiles[(x+1) % RedTiles.Count];
             var d = (e-s).Sign();
             // this segment of the poly moves left<->right
-            if (d.x == 1 || d.x == -1)
+            if (d.x != 0 )
             {
-                // fully outside box
+                // fully outside box (or on our "edge")
                 if (s.y <= box.a.y || s.y >= box.b.y) continue;
                 if (s.x >= box.b.x && e.x >= box.b.x) continue;
                 if (s.x <= box.a.x && e.x <= box.a.x) continue;
-                // crosses into box 
+                // starts or ends in the heart of the box 
                 if (s.x > box.a.x && s.x < box.b.x) return false;
                 if (e.x > box.a.x && e.x < box.b.x) return false;
+                // spans across our box
                 if (s.x <= box.a.x && e.x >= box.b.x) return false;
                 if (e.x <= box.a.x && s.x >= box.b.x) return false;
             }
             // this segment of the poly moves up/down
             else
             {
-                // fully outside box
+                // fully outside box (or on our "edge")
                 if (s.x <= box.a.x || s.x >= box.b.x) continue;
                 if (s.y >= box.b.y && e.y >= box.b.y) continue;
                 if (s.y <= box.a.y && e.y <= box.a.y) continue;
-                // crosses into box 
+                // starts or ends in the heart of the box 
                 if (s.y > box.a.y && s.y < box.b.y) return false;
                 if (e.y > box.a.y && e.y < box.b.y) return false;
+                // spans across our box
                 if (s.y <= box.a.y && e.y >= box.b.y) return false;
                 if (e.y <= box.a.y && s.y >= box.b.y) return false;
             }
