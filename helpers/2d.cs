@@ -104,6 +104,14 @@ public class Point2D : IEquatable<Point2D>
         yield return this + Left + Up;
     }
 
+    public IEnumerable<Point2D> CardinalCells()
+    {
+        yield return this + Up;
+        yield return this + Right;
+        yield return this + Down;
+        yield return this + Left;
+    }
+
     public static readonly Point2D Zero = new Point2D(0, 0);
     public static readonly Point2D Up = new Point2D(0, -1);
     public static readonly Point2D Down = new Point2D(0, 1);
@@ -118,6 +126,15 @@ public class Point2D : IEquatable<Point2D>
         { Facing2D.Down, Down },
         { Facing2D.Left, Left },
     };
+
+    public static Turn2D TurnBetween(Point2D Facing1, Point2D Facing2)
+    {
+        if (Facing1 == Facing2) return Turn2D.None;
+        if (Facing1.Turn(Turn2D.Left) == Facing2) return Turn2D.Left;
+        if (Facing1.Turn(Turn2D.Around) == Facing2) return Turn2D.Around;
+        if (Facing1.Turn(Turn2D.Right) == Facing2) return Turn2D.Right;
+        return Turn2D.None;
+    }
 
     public static Point2D Facing(Facing2D F) => FacingToPointVector[F];
 
