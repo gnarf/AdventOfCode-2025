@@ -76,57 +76,6 @@ class Day9 : Puzzle
 
     public override void Part2()
     {
-        Dictionary<Point2D, TileType> Tiles = new();
-        HashSet<Point2D> flood = new();
-        for (int x=0; x<RedTiles.Count; x++)
-        {
-            var start = RedTiles[x];
-            var end = x+1 == RedTiles.Count ? RedTiles[0] : RedTiles[x+1];
-            var move = (end-start).Sign();
-            for (var p = start+move; p!=end; p+=move)
-            {
-                Tiles[p] = TileType.Green;
-            }
-            Tiles[start] = TileType.Red;
-        }
-
-        var domainLower = Tiles.Keys.Aggregate(Point2D.Min);
-        var domainUpper = Tiles.Keys.Aggregate(Point2D.Max);
-
-        // flood.Add(new Point2D(domainUpper.x - domainLower.x / 2, domainUpper.y - domainLower.y / 2) + domainLower);
-        // int floodCount = 0;
-        // while (flood.Count > 0)
-        // {
-        //     var f = flood.First();
-        //     flood.Remove(f);
-        //     Tiles.Add(f, TileType.Green);
-        //     foreach (var f2 in f.CardinalCells())
-        //     {
-        //         if (!Tiles.ContainsKey(f2)) flood.Add(f2);
-        //     }
-        //     if (floodCount++ % 1000 == 0) { TimeCheck($"Flood Count {flood.Count}"); }
-        // }
-
-        // for (long y=domainLower.y; y<= domainUpper.y; y++)
-        // {
-        //     bool parity = true;
-        //     bool lastInside = false;
-        //     if (y%100 == 0) Console.WriteLine($"Line {y}");
-        //     for (long x=domainLower.x; x<= domainUpper.x; x++)
-        //     {
-        //         var inside = Tiles.ContainsKey(new (x, y));
-        //         if (inside != lastInside)
-        //         {
-        //             parity = !parity;
-        //         }
-        //         lastInside = inside;
-        //         if (parity && !Tiles.ContainsKey(new (x, y)))
-        //         {
-        //             flood.Add(new (x,y));
-        //         }
-        //     }
-        // }
-
         List<Box2D> Boxes = new();
         for (int x=0; x<RedTiles.Count; x++)
         {
@@ -166,17 +115,19 @@ class Day9 : Puzzle
             return true;            
         }
 
+        int boxes = 0;
         foreach (var box in Boxes)
         {
+            if ((++boxes % 1000) == 0)
+            {
+                TimeCheck($"Pared {boxes} boxes so far, still looking.");
+            }
             // Console.WriteLine($"Test: {box.a} {box.b} {box.Area()}");
             if (TestBox(box))
             {
-                Console.WriteLine($"Test: {box.a} {box.b} {box.Area()} WINNER!");
+                Console.WriteLine($"{box.Area()} WINNER!");
                 return;
             }
         }
-
-        // Point2D.PrintGrid(Tiles.Keys, p => Tiles.TryGetValue(p, out var type) ? type switch { TileType.Red => '#', TileType.Green => 'X' } : flood.Contains(p) ? 'f' : '.');
-
     }
 }
