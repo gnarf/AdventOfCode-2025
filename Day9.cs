@@ -69,7 +69,7 @@ class Day9 : Puzzle
         // TimeCheck("Sorting Boxes");
         Boxes.Sort( (a, b) => b.Area().CompareTo(a.Area()) );
 
-        int boxes = 0;
+        // int boxes = 0;
         // TimeCheck("Starting Box Check");
         foreach (var box in Boxes)
         {
