@@ -51,6 +51,7 @@ class Day9 : Puzzle
         {
             return (p.x > a.x && p.x < b.x) && (p.y > a.y && p.y < b.y);
         }
+        
     }
 
     public override void Part1()
@@ -76,6 +77,7 @@ class Day9 : Puzzle
 
     public override void Part2()
     {
+        // TimeCheck("Building Boxes");
         List<Box2D> Boxes = new();
         for (int x=0; x<RedTiles.Count; x++)
         {
@@ -84,6 +86,7 @@ class Day9 : Puzzle
                 Boxes.Add(new (RedTiles[x], RedTiles[y2]));
             }
         }
+        // TimeCheck("Sorting Boxes");
         Boxes.Sort( (a, b) => b.Area().CompareTo(a.Area()) );
 
         bool TestBox(Box2D box)
@@ -96,43 +99,47 @@ class Day9 : Puzzle
                 // this segment of the poly moves left<->right
                 if (d.x == 1 || d.x == -1)
                 {
-                    // if the y coordinate is the same as one of our edges, or outside the box, skip
+                    // fully outside box
                     if (s.y <= box.a.y || s.y >= box.b.y) continue;
-                    while (s != e + d)
-                    {
-                        // if the point goes fully inside our box
-                        if (s.x > box.a.x && s.x < box.b.x) return false;
-                        s+=d;
-                    }
+                    if (s.x >= box.b.x && e.x >= box.b.x) continue;
+                    if (s.x <= box.a.x && e.x <= box.a.x) continue;
+                    // crosses into box 
+                    if (s.x > box.a.x && s.x < box.b.x) return false;
+                    if (e.x > box.a.x && e.x < box.b.x) return false;
+                    if (s.x <= box.a.x && e.x >= box.b.x) return false;
+                    if (e.x <= box.a.x && s.x >= box.b.x) return false;
                 }
                 // this segment of the poly moves up/down
                 else
                 {
-                    // if the x coordinate is the same as one of our edges, or outside the box, skip
+                    // fully outside box
                     if (s.x <= box.a.x || s.x >= box.b.x) continue;
-                    while (s != e + d)
-                    {
-                        // if the point goes fully inside our box
-                        if (s.y > box.a.y && s.y < box.b.y) return false;
-                        s+=d;
-                    }
+                    if (s.y >= box.b.y && e.y >= box.b.y) continue;
+                    if (s.y <= box.a.y && e.y <= box.a.y) continue;
+                    // crosses into box 
+                    if (s.y > box.a.y && s.y < box.b.y) return false;
+                    if (e.y > box.a.y && e.y < box.b.y) return false;
+                    if (s.y <= box.a.y && e.y >= box.b.y) return false;
+                    if (e.y <= box.a.y && s.y >= box.b.y) return false;
                 }
+                throw new Exception($"Didn't quick exit for line from {s} to {e} and box {box.a} {box.b}");
             }
             return true;            
         }
 
         int boxes = 0;
+        // TimeCheck("Starting Box Check");
         foreach (var box in Boxes)
         {
             if ((++boxes % 1000) == 0)
             {
-                TimeCheck($"Pared {boxes} boxes so far, still looking.");
+                // TimeCheck($"Parsed {boxes} of {Boxes.Count} boxes so far, still looking.");
             }
             // Console.WriteLine($"Test: {box.a} {box.b} {box.Area()}");
             if (TestBox(box))
             {
-                Console.WriteLine($"{box.Area()} WINNER!");
-                return;
+                Console.WriteLine(box.Area());
+                break;
             }
         }
     }
