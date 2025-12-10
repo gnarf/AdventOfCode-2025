@@ -4,6 +4,11 @@ using System.Linq;
 using System.Collections.Generic;
 using Microsoft.VisualBasic;
 using NUnit.Framework.Internal;
+using System.Security.Cryptography.X509Certificates;
+using System.Xml.Serialization;
+using System.Diagnostics;
+using System.Runtime.Serialization.Formatters.Binary;
+using Newtonsoft.Json;
 namespace AoC2025;
 
 class Day10 : Puzzle
@@ -25,7 +30,7 @@ class Day10 : Puzzle
                 parts[1..^1].Select(s => s.Trim('(',')').Split(',').Select(int.Parse).ToList())
             );
 
-            Buttons.Sort( (a, b) => GetButtonDesirability(b).CompareTo(GetButtonDesirability(a)) );
+            // Buttons.Sort( (a, b) => GetButtonDesirability(a).CompareTo(GetButtonDesirability(b)) );
             Lights.AddRange(RequiredPattern.Select(_ => false));
         }
 
@@ -65,51 +70,104 @@ class Day10 : Puzzle
                     }
                 }
             }
-            
 
             return new();
+        }
+
+        public bool OverJolted(int[] acc)
+        {
+            return acc.Select((n, i) => n > Joltage[i]).Any(b => b);
+        }
+
+        public bool Jolted(int[] acc)
+        {
+            return Joltage.SequenceEqual(acc);
+        }
+
+        public int[] CalcJoltage(List<int> presses)
+        {
+            int[] acc = new int[Joltage.Count];
+            for(int x=0; x<Buttons.Count; x++)
+            {
+                for (int y=0; y<Buttons[x].Count; y++)
+                {
+                    acc[Buttons[x][y]] += presses[x];
+                }
+            }
+            return acc;
+        }
+
+        public class ListStack<T> : List<T>
+        {
+            public void Push(T item) => Add(item);
+            public T Pop()
+            {
+                var n = this[^1];
+                RemoveAt(Count - 1);
+                return n;
+            }
         }
 
         public List<int> GetLeastButtonPressesNeededForJoltage()
         {
             var Buttons = this.Buttons.ToList();
-            Stack<(int[] Jolts, List<int> Buttons)> Stack = new();
-            Stack.Push( (Joltage.Select(n=>0).ToArray(), new(){}) );
+            ListStack<(int[] Jolts, List<int> presses, int nextButton)> Stack = new();
+            Stack.Push( (Joltage.Select(n=>0).ToArray(), Buttons.Select(b => 0).ToList(), 0) );
             List<int> shortestButtons = new();
             int shortestCount = int.MaxValue;
             long iters = 0;
 
             while (Stack.Count > 0)
             {
-                if (++iters % 10000000 == 0)
-                {
-                    TimeCheck($"Iterations: {iters} / {Stack.Count}");
-                }
                 var test = Stack.Pop();
-                if (test.Buttons.Count >= shortestCount) continue;
-                // Console.WriteLine($"Flip Sequence: /{string.Join(",", buttons.Select(b => b))}\\ -{string.Join(",", newState)}- {RenderJoltage()}");
-                if (test.Jolts.SequenceEqual(Joltage))
+                if (test.presses.Sum() >= shortestCount)
                 {
-                    shortestButtons = test.Buttons;
-                    shortestCount = test.Buttons.Count;
-                    TimeCheck($"New Shortest! {shortestCount}");
                     continue;
                 }
-
-                for (int button=test.Buttons.Count > 0 ? test.Buttons[^1] + 1 : 0; button<Buttons.Count; button++)
+                if (++iters % 100000 == 0)
                 {
-                    // add an entry for the stack for each state of pressing this button n times up until we run out
+                    TimeCheck($"{Thread.CurrentThread.ManagedThreadId:###} Iterations: {iters/1000:#########}k / {Stack.Count} {string.Join(",", test.presses)} {string.Join(",",test.Jolts)} {test.nextButton}");
+                }
+                if (Jolted(test.Jolts))
+                {
+                    shortestButtons = test.presses.SelectMany((n, i) => Enumerable.Range(0, n).Select(n => i)).ToList();
+                    shortestCount = shortestButtons.Count;
+                    TimeCheck($"{Thread.CurrentThread.ManagedThreadId:###} Max Shortest! {shortestCount}");
+                    continue;
+                    // if (shortestCount == Joltage.Max()) 
+                    //     return shortestButtons;
+                }
+                if (test.nextButton >= Buttons.Count) continue;
+                var c = test.presses.Sum();
+                var max = Math.Min(shortestCount, Joltage.Sum());
+                for (int presses=1; presses <= max - c; presses++)
+                {
+                    // var i = Stack.FindIndex(c => c.presses.Sum() >= test.presses.Sum() + presses);
 
-                    var flips = Buttons[button];
-                    var buttons = test.Buttons.ToList();
-                    var newState = test.Jolts.ToArray();
-                    buttons.Add(button);
-                    foreach (var l in flips) { newState[l]++; }
-                    while (buttons.Count < shortestCount && !Joltage.Select( (value, index) => newState[index] > value ).Any( b => b ))
+                    for (int button=test.nextButton; button<Buttons.Count; button++)
                     {
-                        Stack.Push( (newState.ToArray(), buttons.ToList()) );
-                        buttons.Add(button);
-                        foreach (var l in flips) { newState[l]++; }
+                        // add an entry for the stack for each state of pressing this button n times up until we run out
+                        var flips = Buttons[button];
+                        var maxPressCount = flips.Select(f => Joltage[f] - test.Jolts[f]).Min(); // min because the rest go over
+                        if (maxPressCount < presses) continue;
+                        var newPress = test.presses.ToList();
+                        newPress[button] += presses;
+                        var pressed = newPress.Sum();
+                        var jolts = CalcJoltage(newPress);
+                        if (OverJolted(jolts)) continue;
+                        var entry = (jolts, newPress, button + 1);
+                        if (button == Buttons.Count - 1 && presses != maxPressCount)
+                        {
+                            break;
+                        }
+                        // if (i == -1)
+                        // {
+                            Stack.Push(entry);
+                        // }
+                        // else
+                        // {
+                        //     Stack.Insert(i, entry);
+                        // }
                     }
                 }
             }
@@ -121,7 +179,7 @@ class Day10 : Puzzle
 
         public override string ToString()
         {
-            return RenderLights(Lights) + RenderLights(RequiredPattern) + " " + string.Join(' ', Buttons.Select(RenderButton)) + " " + RenderJoltage(); 
+            return RenderLights(RequiredPattern) + " " + string.Join(' ', Buttons.Select(RenderButton)) + " " + RenderJoltage(); 
         }
 
     }
@@ -153,21 +211,56 @@ class Day10 : Puzzle
         // Console.WriteLine(totalPresses);
     }
 
+
     public override void Part2()
     {
+        bool cacheEnabled = true;
+        Dictionary<string, int> solutions = new();
+        void WriteCache(string m, int count)
+        {
+            if (!cacheEnabled) return;
+            lock (solutions)
+            {
+                solutions[m] = count;
+                using (var writer = new StreamWriter("cache"))
+                {
+                    writer.Write(JsonConvert.SerializeObject(solutions, Formatting.Indented));
+                }
+            }
+        }
+        if (cacheEnabled && !File.Exists("cache"))
+        {
+            WriteCache("", 0);
+        }
+        if (cacheEnabled)
+        {
+            using (var reader = new StreamReader("cache"))
+            {
+                solutions = JsonConvert.DeserializeObject<Dictionary<string, int>>(reader.ReadToEnd());
+            }
+        }
         TimeCheck("Machine Tests");
         int totalPresses = 0;
-        foreach (var m in Machines)
+        var opts = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
+        Parallel.ForEach(Machines, opts, m =>
         {
-            Console.WriteLine(m);
+            if (cacheEnabled)
+            {
+                lock(solutions)
+                {
+                    if (solutions.TryGetValue(m.ToString(), out var cached))
+                    {
+                        TimeCheck($"{Thread.CurrentThread.ManagedThreadId:###} Got cache {m} {cached}");
+                        Interlocked.Add(ref totalPresses, cached);
+                        return;
+                    }
+                }
+            }
             var presses = m.GetLeastButtonPressesNeededForJoltage();
-            totalPresses += presses.Count;
-            TimeCheck(string.Join(",", presses) + " " + presses.Count);
-        }
-        // foreach (var line in lines)
-        // {
-
-        // }
+            WriteCache(m.ToString(), presses.Count);
+            Interlocked.Add(ref totalPresses, presses.Count);
+            TimeCheck($"{Thread.CurrentThread.ManagedThreadId:###} {string.Join(",", presses)} {presses.Count}");
+        });
         Console.WriteLine(totalPresses);
     }
 }

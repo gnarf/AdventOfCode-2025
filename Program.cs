@@ -19,6 +19,10 @@ if (RunnerType!=null && Activator.CreateInstance(RunnerType) is Puzzle runner)
         inputFile += "."+args[1];
         runner.extra = args[1];
     }
+    else
+    {
+        runner.extra = "";
+    }
     inputFile += ".txt";
     Console.WriteLine($"Parsing Input {inputFile}");
     var clock = System.Diagnostics.Stopwatch.StartNew();
