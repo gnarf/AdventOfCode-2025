@@ -23,8 +23,8 @@ public abstract class Puzzle {
     public virtual void Part1() => Console.WriteLine("Not implemented yet");
     public virtual void Part2() => Console.WriteLine("Not implemented yet");
 
-    private Stopwatch stopwatch = new();
-    public void TimeCheck(string str)
+    private static Stopwatch stopwatch = new();
+    public static void TimeCheck(string str)
     {
         if (!stopwatch.IsRunning) stopwatch.Start();
         Console.WriteLine($"[{stopwatch.Elapsed}] {str}");
