@@ -18,16 +18,6 @@ class Day11 : Puzzle
             this.From = From;
             this.To.AddRange(To);
         }
-
-        public Dictionary<string, HashSet<string>> PathsTo = new();
-        public List<Connection>? PathsToMe = null;
-        public HashSet<string> Paths(string To)
-        {
-            if (PathsTo.TryGetValue(To, out var result)) return result;
-            result = new();
-            PathsTo.Add(To, result);
-            return result;
-        }
     }
 
     public Dictionary<string, Connection> ServerRack = new();
@@ -43,31 +33,31 @@ class Day11 : Puzzle
         ServerRack.Add("out", new("out", Enumerable.Empty<string>()));
     }
 
-    // public override void Part1()
-    // {
-    //     Queue<(string node, string path, int depth)> bfs = new();
-    //     bfs.Enqueue(("you", "you", 0));
+    public override void Part1()
+    {
+        Queue<(string node, string path, int depth)> bfs = new();
+        bfs.Enqueue(("you", "you", 0));
 
-    //     HashSet<string> FullPath = new();
-    //     while (bfs.Count > 0)
-    //     {
-    //         var t = bfs.Dequeue();
-    //         foreach (var next in ServerRack[t.node].To)
-    //         {
-    //             var path = t.path + " " + next;
-    //             if (next == "out")
-    //             {
-    //                 FullPath.Add(path);
-    //             }
-    //             else
-    //             {
-    //                 bfs.Enqueue((next, path, t.depth + 1));
-    //             }
-    //         }
-    //     }
+        HashSet<string> FullPath = new();
+        while (bfs.Count > 0)
+        {
+            var t = bfs.Dequeue();
+            foreach (var next in ServerRack[t.node].To)
+            {
+                var path = t.path + " " + next;
+                if (next == "out")
+                {
+                    FullPath.Add(path);
+                }
+                else
+                {
+                    bfs.Enqueue((next, path, t.depth + 1));
+                }
+            }
+        }
 
-    //     Console.WriteLine(FullPath.Count);
-    // }
+        Console.WriteLine(FullPath.Count);
+    }
 
     public class SwitchQueue<T> : List<T>
     {
