@@ -90,36 +90,11 @@ class Day9 : Puzzle
         {
             var start = RedTiles[x];
             var end = RedTiles[(x+1) % RedTiles.Count];
-            var diff = end-start;
-            // this segment of the poly moves left<->right
-            if (diff.x != 0 )
-            {
-                // fully outside box (or on our "edge")
-                if (start.y <= box.UL.y || start.y >= box.LR.y) continue;
-                if (start.x >= box.LR.x && end.x >= box.LR.x) continue;
-                if (start.x <= box.UL.x && end.x <= box.UL.x) continue;
-                // starts or ends in the heart of the box 
-                if (start.x > box.UL.x && start.x < box.LR.x) return false;
-                if (end.x > box.UL.x && end.x < box.LR.x) return false;
-                // spans across our box
-                if (start.x <= box.UL.x && end.x >= box.LR.x) return false;
-                if (end.x <= box.UL.x && start.x >= box.LR.x) return false;
-            }
-            // this segment of the poly moves up/down
-            else
-            {
-                // fully outside box (or on our "edge")
-                if (start.x <= box.UL.x || start.x >= box.LR.x) continue;
-                if (start.y >= box.LR.y && end.y >= box.LR.y) continue;
-                if (start.y <= box.UL.y && end.y <= box.UL.y) continue;
-                // starts or ends in the heart of the box 
-                if (start.y > box.UL.y && start.y < box.LR.y) return false;
-                if (end.y > box.UL.y && end.y < box.LR.y) return false;
-                // spans across our box
-                if (start.y <= box.UL.y && end.y >= box.LR.y) return false;
-                if (end.y <= box.UL.y && start.y >= box.LR.y) return false;
-            }
-            throw new Exception($"Didn't quick exit for line from {start} to {end} and box {box.UL} {box.LR}");
+            (start, end) = (Point2D.Min(start, end), Point2D.Max(start, end));
+            if (
+                (start.x > box.UL.x && start.x < box.LR.x && start.y < box.LR.y && end.y > box.UL.y) ||
+                (start.y > box.UL.y && start.y < box.LR.y && start.x < box.LR.x && end.x > box.UL.x)
+            ) return false;
         }
         return true;            
     }
