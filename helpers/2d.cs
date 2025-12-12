@@ -149,21 +149,31 @@ public class Point2D : IEquatable<Point2D>
         };
     }
 
-    public static void PrintGrid(Point2D min, Point2D max, Func<Point2D, char> charToPrint)
+    public static string StringGrid(Point2D min, Point2D max, Func<Point2D, char> charToPrint)
     {
+        string linebuffer = "";
         for (long y=min.y; y<=max.y; y++)
         {
-            string linebuffer = "";
             for (long x=min.x; x<=max.x; x++)
             {
                 linebuffer += charToPrint(new Point2D(x, y));
             }
-            Console.WriteLine(linebuffer);
+            linebuffer += '\n';
         }
+        return linebuffer;
+    }
+    public static string StringGrid(IEnumerable<Point2D> points, Func<Point2D, char> charToPrint)
+    {
+        return StringGrid(points.Aggregate(Point2D.Min), points.Aggregate(Point2D.Max), charToPrint);
+    }
+    
+    public static void PrintGrid(Point2D min, Point2D max, Func<Point2D, char> charToPrint)
+    {
+        Console.Write(StringGrid(min, max, charToPrint));
     }
     public static void PrintGrid(IEnumerable<Point2D> points, Func<Point2D, char> charToPrint)
     {
-        PrintGrid(points.Aggregate(Point2D.Min), points.Aggregate(Point2D.Max), charToPrint);
+        Console.WriteLine(StringGrid(points.Aggregate(Point2D.Min), points.Aggregate(Point2D.Max), charToPrint));
     }
 
     public static class Point2DCarinals

@@ -9,6 +9,7 @@ using System.Xml.Serialization;
 using System.Diagnostics;
 using System.Runtime.Serialization.Formatters.Binary;
 using Newtonsoft.Json;
+using Google.OrTools.Graph;
 namespace AoC2025;
 
 class Day10 : Puzzle
@@ -108,8 +109,30 @@ class Day10 : Puzzle
             }
         }
 
+        public long[,] MatrixForm()
+        {
+            var m = new long[Buttons.Count + 1, Joltage.Count];
+            for (var x = 0; x<=Buttons.Count; x++)
+            {
+                var button = x==Buttons.Count ? null : Buttons[x];
+                for (var y=0; y<Joltage.Count; y++)
+                {
+                    if (button != null)
+                    {
+                        m[x, y] = button.Contains(y) ? 1 : 0;
+                    }
+                    else
+                    {
+                        m[x, y] = Joltage[y];
+                    }
+                }
+            }
+            return m;
+        }
+
         public List<int> GetLeastButtonPressesNeededForJoltage()
         {
+            MatrixForm();
             var Buttons = this.Buttons.ToList();
             ListStack<(int[] Jolts, List<int> presses, int nextButton)> Stack = new();
             Stack.Push( (Joltage.Select(n=>0).ToArray(), Buttons.Select(b => 0).ToList(), 0) );
