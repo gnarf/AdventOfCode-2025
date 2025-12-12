@@ -124,7 +124,6 @@ class Day12 : Puzzle
                 for (int y=0; y<=max.y - shapeMax.y; y++)
                 {
                     var offset = new Point2D(x, y);
-                    int t = -1;
                     foreach (var turn in shape.AllTurns())
                     {
                         if (turn.Fits(myGrid, offset))
