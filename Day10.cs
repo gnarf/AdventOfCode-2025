@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Runtime.Serialization.Formatters.Binary;
 using Newtonsoft.Json;
 using Google.OrTools.Graph;
+using System.Text;
 namespace AoC2025;
 
 class Day10 : Puzzle
@@ -237,53 +238,136 @@ class Day10 : Puzzle
 
     public override void Part2()
     {
-        bool cacheEnabled = true;
-        Dictionary<string, int> solutions = new();
-        void WriteCache(string m, int count)
+        // bool cacheEnabled = true;
+        // Dictionary<string, int> solutions = new();
+        // void WriteCache(string m, int count)
+        // {
+        //     if (!cacheEnabled) return;
+        //     lock (solutions)
+        //     {
+        //         solutions[m] = count;
+        //         using (var writer = new StreamWriter("cache"))
+        //         {
+        //             writer.Write(JsonConvert.SerializeObject(solutions, Formatting.Indented));
+        //         }
+        //     }
+        // }
+        // if (cacheEnabled && !File.Exists("cache"))
+        // {
+        //     WriteCache("", 0);
+        // }
+        // if (cacheEnabled)
+        // {
+        //     using (var reader = new StreamReader("cache"))
+        //     {
+        //         solutions = JsonConvert.DeserializeObject<Dictionary<string, int>>(reader.ReadToEnd());
+        //     }
+        // }
+        // TimeCheck("Machine Tests");
+        // int totalPresses = 0;
+        // var opts = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
+        // Parallel.ForEach(Machines, opts, m =>
+        // {
+        //     if (cacheEnabled)
+        //     {
+        //         lock(solutions)
+        //         {
+        //             if (solutions.TryGetValue(m.ToString(), out var cached))
+        //             {
+        //                 TimeCheck($"{Thread.CurrentThread.ManagedThreadId:###} Got cache {m} {cached}");
+        //                 Interlocked.Add(ref totalPresses, cached);
+        //                 return;
+        //             }
+        //         }
+        //     }
+        //     var presses = m.GetLeastButtonPressesNeededForJoltage();
+        //     WriteCache(m.ToString(), presses.Count);
+        //     Interlocked.Add(ref totalPresses, presses.Count);
+        //     TimeCheck($"{Thread.CurrentThread.ManagedThreadId:###} {string.Join(",", presses)} {presses.Count}");
+        // });
+        // Console.WriteLine(totalPresses);
+
+        foreach (var machine in Machines)
         {
-            if (!cacheEnabled) return;
-            lock (solutions)
+            TimeCheck(machine.ToString());
+            var m = machine.MatrixForm();
+            Reduce(m);
+            PrintMatrix(m);
+        }
+
+    }
+
+    public void Reduce(long[,] m)
+    {
+        var w = m.GetLength(0);
+        var h = m.GetLength(1);
+        // PrintMatrix(m);
+        int px=0, py = 0;
+        while (px < w && py < h)
+        {
+            int y_max = -1;
+            long max = int.MaxValue;
+            for (int y = py; y < h; y++)
             {
-                solutions[m] = count;
-                using (var writer = new StreamWriter("cache"))
+                var abs = Math.Abs(m[px, y]);
+                if (abs != 0 && abs < max)
                 {
-                    writer.Write(JsonConvert.SerializeObject(solutions, Formatting.Indented));
+                    max = abs;
+                    y_max = y;
                 }
             }
-        }
-        if (cacheEnabled && !File.Exists("cache"))
-        {
-            WriteCache("", 0);
-        }
-        if (cacheEnabled)
-        {
-            using (var reader = new StreamReader("cache"))
+            if (max == int.MaxValue)
             {
-                solutions = JsonConvert.DeserializeObject<Dictionary<string, int>>(reader.ReadToEnd());
+                px++;
+                continue;
             }
-        }
-        TimeCheck("Machine Tests");
-        int totalPresses = 0;
-        var opts = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
-        Parallel.ForEach(Machines, opts, m =>
-        {
-            if (cacheEnabled)
+            else
             {
-                lock(solutions)
+                // Console.WriteLine($"Pivot {px},{py} - max row {y_max}");
+                for (int x=0; x<w; x++)
                 {
-                    if (solutions.TryGetValue(m.ToString(), out var cached))
+                    (m[x, y_max], m[x, py]) = (m[x, py], m[x, y_max]);
+                }
+                // PrintMatrix(m);
+                for (int y = 0; y < h; y++)
+                {
+                    if (y == py) continue;
+                    long p = m[px, py];
+                    // Console.WriteLine($"Pivot Value: {p} vs row {y} {m[px,y]}");
+                    if (p != 0 && m[px, y] % p != 0)
                     {
-                        TimeCheck($"{Thread.CurrentThread.ManagedThreadId:###} Got cache {m} {cached}");
-                        Interlocked.Add(ref totalPresses, cached);
-                        return;
+                        // Console.WriteLine($"row {y} *= {p}");
+                        for (int x=0; x<w; x++) m[x,y] *= p;
+                        p = Math.Sign(p) * Math.Sign(m[px, y]);
                     }
+                    p = m[px, y] / m[px, py];
+                    // PrintMatrix(m);
+                    // Console.WriteLine($"row {y} -= {p} * row {py}");
+                    for (int x=px; x<w; x++) m[x, y] -= p * m[x, py];
+                    // PrintMatrix(m);
+
                 }
+                // PrintMatrix(m);
+                px++;
+                py++;
             }
-            var presses = m.GetLeastButtonPressesNeededForJoltage();
-            WriteCache(m.ToString(), presses.Count);
-            Interlocked.Add(ref totalPresses, presses.Count);
-            TimeCheck($"{Thread.CurrentThread.ManagedThreadId:###} {string.Join(",", presses)} {presses.Count}");
-        });
-        Console.WriteLine(totalPresses);
+        }
+    }
+
+    StringBuilder sb = new();
+    public void PrintMatrix(long[,] m)
+    {
+        sb.Clear();
+        for (int y=0; y<m.GetLength(1); y++)
+        {
+
+            for (int x=0; x<m.GetLength(0); x++)
+            {
+                sb.Append(m[x, y]);
+                sb.Append('\t');
+            }
+            sb.AppendLine();
+        }
+        Console.WriteLine(sb.ToString());
     }
 }

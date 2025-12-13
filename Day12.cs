@@ -86,7 +86,7 @@ class Day12 : Puzzle
             return $"{Width}x{Height}: {string.Join(" ", PackageRequests)}";
         }
 
-        public bool TryFit(ref Dictionary<Point2D, char>? grid, List<Shape>? shapes = null, int depth = 0)
+        public bool TryFit(ref Dictionary<Point2D, char>? grid, ref int iterations, List<Shape>? shapes = null, int depth = 0)
         {
             if (shapes == null)
             {
@@ -119,6 +119,7 @@ class Day12 : Puzzle
             var shape = shapes[depth];
             var shapeMax = shape.Points.Aggregate(Point2D.Max);
             // the off by ones cancel
+            iterations++;
             for(int x=0; x<=max.x - shapeMax.x; x++)
             {
                 for (int y=0; y<=max.y - shapeMax.y; y++)
@@ -136,7 +137,7 @@ class Day12 : Puzzle
                             }
                             if (shapes.Count > depth + 1)
                             {
-                                if (TryFit(ref copy, shapes, depth + 1))
+                                if (TryFit(ref copy, ref iterations, shapes, depth + 1))
                                 {
                                     grid = copy;
                                     return true;
@@ -210,15 +211,17 @@ class Day12 : Puzzle
         Dictionary<Point2D, char>? grid = null;
         int fit = 0;
         int l = 0;
+        int iterations = 0;
         TimeCheck($"starting");
         foreach (var r in Requests)
         {
             TimeCheck($"Starting #{++l} {r}");
-            if (r.TryFit(ref grid))
+            iterations = 0;
+            if (r.TryFit(ref grid, ref iterations))
             {
                 fit++;
-                TimeCheck($"Finished {l} {r}");
-                Point2D.PrintGrid(grid.Keys, f => grid.TryGetValue(f, out var c) ? c : '.');
+                TimeCheck($"Finished {l} {r} {iterations}");
+                // Point2D.PrintGrid(grid.Keys, f => grid.TryGetValue(f, out var c) ? c : '.');
                 grid.Clear();
             }
         }

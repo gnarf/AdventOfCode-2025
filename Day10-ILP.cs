@@ -44,6 +44,11 @@ class Day110 : Day10
 
         Console.WriteLine("Problem solved in " + solver.Iterations() + " iterations");
         Console.WriteLine("Problem solved in " + solver.Nodes() + " branch-and-bound nodes");
+        foreach (var b in buttonPresses)
+        {
+            Console.Write($"{b.Name()} = {(int)b.SolutionValue()}; ");
+        }
+        Console.WriteLine();
         TimeCheck(machine.ToString() + ": " + solver.Objective().Value());
 
         return (int)solver.Objective().Value();
